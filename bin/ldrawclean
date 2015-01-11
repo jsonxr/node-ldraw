@@ -1,0 +1,43 @@
+#!/usr/bin/env node
+/*
+
+Usage:
+ldrawclean model.ldr > clean.ldr
+
+This utility cleans up an LDraw file so it uses integers:
+
+Before:
+ 0 Sheep
+ 0 Author: LEGO Digital Designer 4.3
+ 1 0 0 -24 10 1 0 0 0 1 0 0 0 1 3004.dat
+ 1 15 0 -32 0 0 0 -1 0 0.999999940395355224609375 0 1 0 0 3020.dat
+ 1 0 0 -24 -30.0000019073486328125 1 0 0 0 1 0 0 0 1 3004.dat
+...
+
+After:
+ 0 Sheep
+ 0 Author: LEGO Digital Designer 4.3
+ 1 0 0 -24 10 1 0 0 0 1 0 0 0 1 3004.dat
+ 1 15 0 -32 0 0 0 -1 0 1 0 1 0 0 3020.dat
+ 1 0 0 -24 -30 1 0 0 0 1 0 0 0 1 3004.dat
+ ...
+
+ */
+
+var fs = require('fs');
+var yargs = require('yargs');
+var path = require('path');
+var cleanFile = require('../src/clean-file');
+
+var filename = yargs.argv._[0];
+if (! filename) {
+  console.log('Usage:  ldrawclean model.ldr > model_clean.ldr');
+  process.exit(-1);
+}
+
+filename = path.resolve(yargs.argv._[0]);
+
+
+contents = fs.readFileSync(filename, { "encoding": "utf8"});
+contents = cleanFile(contents);
+console.log(contents);

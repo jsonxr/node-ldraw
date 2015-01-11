@@ -1,0 +1,11 @@
+#!/usr/bin/env node
+var fs = require('fs');
+var path = require('path');
+
+
+var parseColors = require('../src/parse-colors');
+var filename = path.resolve(path.join(__dirname, '..', 'ldraw', 'LDConfig.ldr'));
+var contents = fs.readFileSync(filename, { "encoding": "utf8"});
+var colors = parseColors(contents);
+console.log(JSON.stringify(colors, null, '  '));
+
