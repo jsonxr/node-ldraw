@@ -1,5 +1,11 @@
 # node-ldraw
-A Library for loading and parsing a LDraw files
+A Library for loading and parsing a LDraw files.
+
+LDraw
+http://www.ldraw.org
+
+File Format 1.0.2:
+http://www.ldraw.org/article/218.html
 
     npm install ldraw
 
