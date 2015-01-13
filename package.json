@@ -6,6 +6,9 @@
   "scripts": {
     "test": "node_modules/.bin/mocha tests"
   },
+  "bin": {
+    "ldrawclean": "./bin/ldrawclean"
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/jsonxr/node-ldraw.git"
