@@ -16,9 +16,9 @@ Loads a model from the base path. If it doesn't find it in the file system,
 it will attempt to load it from the internets.  It looks in the following
 places in the following order:
 
-1. \<path>/parts
-2. \<path>/p
-3. \<path>/models
+1. (base path)/parts
+2. (base path)/p
+3. (base path)/models
 4. www.ldraw.org/library/official/parts/
 5. www.ldraw.org/library/official/p/
 
@@ -100,7 +100,9 @@ var black = {
   "MATERIAL": "SOLID",
   "LEGOID": "26 - Black"
 }
-assert.equals(black, ldraw.colors[0]);
+assert.equals(black.NAME, ldraw.colors[0].NAME);
+assert.equals(black.CODE, ldraw.colors[0].CODE);
+assert.equals(black.VALUE, ldraw.colors[0].VALUE);
 ```
 
 ## ldraw.parseModel(str)
