@@ -38,11 +38,14 @@ Commands can be one of the following:
 var subfile = {
   type: 1, color: 2,
   x: 0, y: 0, z: 0,
-  a: 0, b: 0, c: 0,
-  d: 0, e: 0, f: 0,
-  g: 0, h: 0, i: 0,
+  a: 1, b: 0, c: 0,
+  d: 0, e: 1, f: 0,
+  g: 0, h: 0, i: 1,
   file: '3001.dat'
 }
+
+  c x y z a b c d e f g h i
+1 0 0 0 0 1 0 0 0 1 0 0 0 1 3001.dat
 
 // 2 - line
 var line = {
