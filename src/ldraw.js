@@ -10,7 +10,7 @@ var httpGet = require('./http-get');
 var parseColors = require('./parse-colors');
 var parseModel = require('./parse-model');
 var cleanFile = require('./clean-file');
-
+var subfileLineToArray = require('./subfile-array');
 
 function Ldraw(dir) {
   var ldraw = {};
@@ -225,5 +225,7 @@ function Ldraw(dir) {
 
   return ldraw;
 }
+
+Ldraw.subfileLineToArray = subfileLineToArray;
 
 module.exports = Ldraw;

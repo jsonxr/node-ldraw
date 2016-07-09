@@ -19,6 +19,7 @@
     "url": "https://github.com/jsonxr/node-ldraw/issues"
   },
   "devDependencies": {
+    "gl-matrix": "^2.3.2",
     "mocha": "^2.0.1"
   },
   "homepage": "https://github.com/jsonxr/node-ldraw",

@@ -10,7 +10,23 @@ http://www.ldraw.org/article/218.html
     npm install ldraw
 
 
+# Geometry
+
+There are three reasons to reverse vertices in an LDRAW file
+
+1) Determinant of matrix is Negative: http://mathinsight.org/determinant_geometric_properties
+2) INVERTNEXT on previous line
+3) Clockwise winding (opengl is counter clockwise)
+
+reverse vertices = negDet XOR inverted XOR clockwise;
+
 ## ldraw.loadModel(filename, callback)
+
+    http://www.ldraw.org/reference/faq/#26
+    The P folder.
+    The PARTS folder.
+    The MODELS folder.
+    The current folder.
 
 Loads a model from the base path. If it doesn't find it in the file system,
 it will attempt to load it from the internets.  It looks in the following
@@ -21,6 +37,9 @@ places in the following order:
 3. (base path)/models
 4. www.ldraw.org/library/official/parts/
 5. www.ldraw.org/library/official/p/
+
+
+!!!!OOPS!!!! Need to swap p, parts load order.
 
 ```javascript
 var ldraw = require('ldraw')('/path/to/ldraw/files');
@@ -34,18 +53,40 @@ ldraw.loadModel('car.dat', function (err, model) {
 Commands can be one of the following:
 
 ```javascript
-// 1 - subfile
-var subfile = {
-  type: 1, color: 2,
-  x: 0, y: 0, z: 0,
-  a: 1, b: 0, c: 0,
-  d: 0, e: 1, f: 0,
-  g: 0, h: 0, i: 1,
-  file: '3001.dat'
-}
+
+/* 0 - ?
+0 Brick  2 x  4
+0 Name: 3001.dat
+0 Author: James Jessiman
+0 !LDRAW_ORG Part UPDATE 2004-03
+0 !LICENSE Redistributable under CCAL version 2.0 : see CAreadme.txt
+
+0 BFC CERTIFY CCW
+
+0 !HISTORY 2002-05-07 [unknown] BFC Certification
+0 !HISTORY 2002-06-11 [PTadmin] Official Update 2002-03
+0 !HISTORY 2004-02-08 [Steffen] used s\3001s01.dat
+0 !HISTORY 2004-09-15 [PTadmin] Official Update 2004-03
+0 !HISTORY 2007-05-07 [PTadmin] Header formatted for Contributor Agreement
+0 !HISTORY 2008-07-01 [PTadmin] Official Update 2008-01
+*/
+var comment = {
+  type: 0
+};
+
+/* 1 - subfile
 
   c x y z a b c d e f g h i
 1 0 0 0 0 1 0 0 0 1 0 0 0 1 3001.dat
+*/
+var subfile = {
+  type: 1, color: 2,
+  x: 0, y: 0, z: 0,
+  a: 1, b: 0, c: 0, // Describe what a-i are (matrix transform?)
+  d: 0, e: 1, f: 0,
+  g: 0, h: 0, i: 1,
+  file: '3001.dat'
+};
 
 // 2 - line
 var line = {
@@ -56,7 +97,7 @@ var line = {
 };
 
 // 3 - triangle
-var line = {
+var triangle = {
   type: 3,
   color: 2,
   x1: 0, y1: 0, z1: 0, // first point
@@ -65,7 +106,7 @@ var line = {
 };
 
 // 4 - quad
-var line = {
+var quad = {
   type: 4,
   color: 2,
   x1: 0, y1: 0, z1: 0, // first point
