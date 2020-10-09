@@ -2,7 +2,7 @@
 var assert = require('assert');
 var fs = require('fs');
 var path = require('path');
-var cleanFile = require('../src/clean-file');
+var cleanFile = require('../src/old/clean-file');
 var parseModel = require('../src/parse-model');
 
 describe("clean-ldraw", function () {
@@ -21,5 +21,3 @@ describe("clean-ldraw", function () {
   });
 
 });
-
-
