@@ -14,12 +14,10 @@ describe("clean-ldraw", function () {
     assert(model);
     // 1 0 9.99999904632568359375 -7.99999904632568359375 10 0 0 -1 0 0.999999940395355224609375 0 1 0 0 3623.dat
     var cmd = model.commands[0];
-    assert.equal(cmd.x, 10);
-    assert.equal(cmd.y, -8);
-    assert.equal(cmd.e, 1);
+    assert.strictEqual(cmd.x, 10);
+    assert.strictEqual(cmd.y, -8);
+    assert.strictEqual(cmd.e, 1);
     done();
   });
 
 });
-
-

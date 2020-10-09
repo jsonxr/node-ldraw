@@ -39,24 +39,24 @@ describe("parse-colors", function () {
     var colors = parseColors(contents);
     assert(colors);
     var black = colors[0];
-    assert.equal(black.CODE, 0);
-    assert.equal(black.LEGOID, '26 - Black');
-    assert.equal(black.VALUE, '#05131D');
-    assert.equal(black.EDGE, '#595959');
+    assert.strictEqual(black.CODE, 0);
+    assert.strictEqual(black.LEGOID, '26 - Black');
+    assert.strictEqual(black.VALUE, '#05131D');
+    assert.strictEqual(black.EDGE, '#595959');
     // Check Glitter
     var glitter = colors[114];
     assert(glitter);
-    assert.equal(glitter.LEGOID, '114 - Tr. Medium Reddish-Violet w. Glitter 2%');
-    assert.equal(glitter.CODE, 114);
-    assert.equal(glitter.VALUE, '#DF6695');
-    assert.equal(glitter.EDGE, '#9A2A66');
-    assert.equal(glitter.GLITTER_VALUE, '#923978');
-    assert.equal(glitter.FRACTION, '0.17');
-    assert.equal(glitter.VFRACTION, '0.2');
+    assert.strictEqual(glitter.LEGOID, '114 - Tr. Medium Reddish-Violet w. Glitter 2%');
+    assert.strictEqual(glitter.CODE, 114);
+    assert.strictEqual(glitter.VALUE, '#DF6695');
+    assert.strictEqual(glitter.EDGE, '#9A2A66');
+    assert.strictEqual(glitter.GLITTER_VALUE, '#923978');
+    assert.strictEqual(glitter.FRACTION, '0.17');
+    assert.strictEqual(glitter.VFRACTION, '0.2');
     assert.strictEqual(glitter.SIZE, 1);
     assert.strictEqual(glitter.ALPHA, 128);
     var speckle = colors[132];
-    assert.equal(speckle.SPECKLE_VALUE, '#898788');
+    assert.strictEqual(speckle.SPECKLE_VALUE, '#898788');
     done();
   })
 });

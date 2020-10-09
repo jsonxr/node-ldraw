@@ -11,7 +11,7 @@ describe("ldraw", function () {
     ldraw.loadAll(function (err, callback) {
       assert(ldraw.models);
       assert(Object.keys(ldraw.models).length);
-      assert.notEqual(Object.keys(ldraw.models).length, 0);
+      assert.notStrictEqual(Object.keys(ldraw.models).length, 0);
       done();
     });
   });
@@ -72,11 +72,11 @@ describe("ldraw", function () {
       assert(ldraw.colors);
       var black = colors[0];
       assert(black);
-      assert.equal(black.NAME, 'Black');
-      assert.equal(black.CODE, 0);
-      assert.equal(black.VALUE, '#05131D');
-      assert.equal(black.MATERIAL, 'SOLID');
-      assert.equal(black.LEGOID, '26 - Black');
+      assert.strictEqual(black.NAME, 'Black');
+      assert.strictEqual(black.CODE, 0);
+      assert.strictEqual(black.VALUE, '#05131D');
+      assert.strictEqual(black.MATERIAL, 'SOLID');
+      assert.strictEqual(black.LEGOID, '26 - Black');
       done();
     });
   });
@@ -86,11 +86,11 @@ describe("ldraw", function () {
     var ldraw = Ldraw(ldrawPath);
 
     assert(ldraw.cleanFile);
-    assert.equal(typeof ldraw.cleanFile, 'function');
+    assert.strictEqual(typeof ldraw.cleanFile, 'function');
 
     var cmd = '1 0 9.99999904632568359375 -7.99999904632568359375 10 0 0 -1 0 0.999999940395355224609375 0 1 0 0 3623.dat';
     var cleaned = ldraw.cleanFile(cmd);
-    assert.equal(cleaned, '1 0 10 -8 10 0 0 -1 0 1 0 1 0 0 3623.dat');
+    assert.strictEqual(cleaned, '1 0 10 -8 10 0 0 -1 0 1 0 1 0 0 3623.dat');
 
     done();
   });
@@ -99,7 +99,7 @@ describe("ldraw", function () {
     var ldrawPath = path.resolve(__dirname, 'assets');
     var ldraw = Ldraw(ldrawPath);
     assert(ldraw.parseModel);
-    assert.equal(typeof ldraw.parseModel, 'function');
+    assert.strictEqual(typeof ldraw.parseModel, 'function');
     done();
   });
 
@@ -107,11 +107,9 @@ describe("ldraw", function () {
     var ldrawPath = path.resolve(__dirname, 'assets');
     var ldraw = Ldraw(ldrawPath);
     assert(ldraw.parseColors);
-    assert.equal(typeof ldraw.parseColors, 'function');
+    assert.strictEqual(typeof ldraw.parseColors, 'function');
     done();
   });
 
 
 });
-
-
