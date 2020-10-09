@@ -1,6 +1,6 @@
 {
   "name": "ldraw",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "A Library for parsing an LDraw file",
   "main": "src/ldraw.js",
   "scripts": {
@@ -19,12 +19,12 @@
     "url": "https://github.com/jsonxr/node-ldraw/issues"
   },
   "devDependencies": {
-    "mocha": "^2.0.1"
+    "mocha": "^8.1.3"
   },
   "homepage": "https://github.com/jsonxr/node-ldraw",
   "dependencies": {
-    "async": "^0.9.0",
-    "glob": "^4.3.2",
-    "yargs": "^1.3.3"
+    "async": "^1.0.0",
+    "glob": "^7.1.6",
+    "yargs": "^16.0.3"
   }
 }
