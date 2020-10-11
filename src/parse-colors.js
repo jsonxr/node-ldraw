@@ -1,4 +1,12 @@
-var parseLine = require('./parse-line');
+function parseLine(line) {
+  if (line) {
+    var re = /\s+/;
+    return line.trim().split(re);
+  } else {
+    return null;
+  }
+}
+
 
 /*
 
@@ -62,7 +70,8 @@ function parseColors(LDConfig) {
 
     // Does it have a LEGOID? If so, parse it and add it to color object
     // 0                              // LEGOID  26 - Black
-    legoIdIdx = line.indexOf('LEGOID');
+    const legoIdIdx = line.indexOf('LEGOID');
+    let legoId
     if (legoIdIdx > 0) {
       // 0                              // LEGOID  26 - Black
       legoId = line.substr(legoIdIdx + 6).trim();

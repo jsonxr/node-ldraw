@@ -1,6 +1,17 @@
 # node-ldraw
 A Library for loading and parsing a LDraw files.
 
+# Install
+
+## Download LDraw parts library
+
+[Download LDraw parts library](https://www.ldraw.org/parts/latest-parts.html)
+
+```bash
+yarn install:ldraw
+```
+
+
 LDraw
 http://www.ldraw.org
 
