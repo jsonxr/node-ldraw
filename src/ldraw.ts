@@ -1,8 +1,8 @@
-import parse, { LDrawModel, SubFile } from './parse.js';
+import parse, { LDrawFile, SubFile } from './parse.js';
 import pfiles from './generated/p.js';
 import { AsyncCache } from './AsyncCache.js';
 
-const cache = new AsyncCache<LDrawModel>();
+const cache = new AsyncCache<LDrawFile>();
 
 // http://www.ldraw.org/library/official/'
 
@@ -52,9 +52,9 @@ class LDraw {
 
   async loadModel(filename: string) {
     const url = this.getUrl(filename);
-    const file = await cache.get(filename, async (): Promise<LDrawModel | null> => {
+    const file = await cache.get(filename, async (): Promise<LDrawFile | null> => {
       const data = await fnLoadFile(url);
-      const model = LDrawModel.parse(data);
+      const model = LDrawFile.parse(data);
       if (model && !model.name) {
         model.name = filename;
       }
@@ -84,7 +84,7 @@ export class Download {
   private parts: string[];
   private name: string;
 
-  private file: LDrawModel | null = null;
+  private file: LDrawFile | null = null;
   private listeners: Function[] = [];
 
   private constructor(server: string | undefined, parts: string[], name: string) {
@@ -94,15 +94,15 @@ export class Download {
     this.downloadAndParse();
   }
 
-  static async loadModel(url: URL): Promise<LDrawModel | undefined> {
+  static async loadModel(url: URL): Promise<LDrawFile | undefined> {
     const data = await fnLoadFile(url);
     if (data) {
-      const part: LDrawModel = LDrawModel.parse(data);
+      const part: LDrawFile = LDrawFile.parse(data);
       return part;
     }
   }
 
-  static async findModel(server: string | undefined, parts: string[], name: string): Promise<LDrawModel> {
+  static async findModel(server: string | undefined, parts: string[], name: string): Promise<LDrawFile> {
     let d: Download | undefined = Download.downloads[name];
 
     // If there isn't a download yet, create one
@@ -119,7 +119,7 @@ export class Download {
    * @param server
    * @param filename
    */
-  private async searchForFile(partName: string): Promise<LDrawModel | null> {
+  private async searchForFile(partName: string): Promise<LDrawFile | null> {
     const filename = partName.toLowerCase().replace('\\', '/');
 
     // If we know it exists in the 'p' folder, add it The part is in either /parts or /p folders
@@ -130,7 +130,7 @@ export class Download {
     for (const subfolder of subfolders) {
       const data = await fnLoadFile(new URL(`${subfolder}/${filename}`));
       if (data) {
-        const part: LDrawModel = parse(data);
+        const part: LDrawFile = parse(data);
         return part;
       }
     }
@@ -146,7 +146,7 @@ export class Download {
       }
 
       // Get download promises for subparts
-      const subparts: Promise<LDrawModel | undefined>[] = file.lines
+      const subparts: Promise<LDrawFile | undefined>[] = file.lines
         .filter(line => line.lineType === 1)
         .map(line => {
           const subfile = line as SubFile;
@@ -172,7 +172,7 @@ export class Download {
     }
 
     // This allows many files to await this download
-    return new Promise<LDrawModel>((resolve, reject) => {
+    return new Promise<LDrawFile>((resolve, reject) => {
       this.listeners.push((err: any) => {
         if (err) {
           return reject(err);
