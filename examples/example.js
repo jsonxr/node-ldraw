@@ -12,14 +12,21 @@ const ldraw = new LDraw({
 
 
 async function main() {
+  // const part = await ldraw.findModel('rect.dat');
+  // console.log('part: ', part);
   //const model = ldraw.searchModel('3001.dat');
 
-  const model = await ldraw.loadModel('10270%20-%20Bookshop.mpd');
-  console.log(model);
-  const model2 = await ldraw.loadModel('/examples/10270%20-%20Bookshop.mpd');
-  console.log(model2);
+  // const model = await ldraw.loadModel('10270%20-%20Bookshop.mpd');
+  // console.log(model);
+  // const model2 = await ldraw.loadModel('/examples/10270%20-%20Bookshop.mpd');
+  // console.log(model2);
   const model3 = await ldraw.loadModel('http://localhost:8080/docs/examples/10270%20-%20Bookshop.mpd');
+  console.log('\n\n\n-----------jason-----------------------')
   console.log(model3);
+
+  const model2 = await ldraw.loadModel('/docs/examples/10270%20-%20Bookshop.mpd');
+  console.log('\n\n\n-----------jason-----------------------')
+  console.log(model2);
 }
 
 main();

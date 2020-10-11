@@ -1,96 +1,52 @@
+import { listeners } from "process";
 
-export class LDrawFileLine {
-  lineType?: number;
-
-  static parse(line: string, lineNo: number): LDrawFileLine {
-    const li = line.trim();
-    const tokens = li.split(/\s+/)
-
-    if (!tokens || tokens.length === 0 || tokens[0] === '') {
-      return new Empty();
-    }
-
-    const lineType = tokens[0]
-    switch (lineType) {
-      case '0': return Comment.parseTokens(tokens, lineNo);
-      case '1': return SubFile.parseTokens(tokens, lineNo);
-      case '2': return Line.parseTokens(tokens, lineNo);
-      case '3': return Triangle.parseTokens(tokens, lineNo);
-      case '4': return Quadrilateral.parseTokens(tokens, lineNo);
-      case '5': return OptionalLine.parseTokens(tokens, lineNo);
-      default: return Comment.parseTokens(tokens, lineNo);
-    }
-  }
+export interface FileLine {
+  readonly lineType?: number;
 }
-
-export class Empty extends LDrawFileLine {}
 
 //------------------------------------------------------------------------------
 // Line Type 0: Comments
 //------------------------------------------------------------------------------
 
 // Line Types: https://www.ldraw.org/article/218.html
-export class Comment extends LDrawFileLine {
-  readonly lineType?: number = 0;
-  comment: string = '';
+export class Comment implements FileLine {
+  readonly lineType: number = 0;
+  tokens: string[];
 
-  constructor(options?: any) {
-    super();
-    Object.assign(this, options);
+  constructor(tokens: string[]) {
+    this.tokens = tokens;
   }
 
-  static parseTokens(tokens: string[], lineNo?: number): LDrawFileLine {
-    if (tokens.length === 1) {
-      return new Comment();
-    }
-
-    if (lineNo === 0 && tokens[1] !== 'FILE') {
-      return CommentFileTitle.parseTokens(tokens, lineNo);
-    }
-
-    if (tokens[1] === '//') {
-      return new Comment({ comment: tokens.slice(2).join(' ') });
-    }
-
-    if (tokens[1].substr(0, 1) === '!') {
-      return MetaCommand.parseTokens(tokens, lineNo);
-    }
-
-    const metas = ['Author:', 'Name:', 'FILE'];
-    if (metas.includes(tokens[1])) {
-      return MetaCommand.parseTokens(tokens, lineNo);
-    }
-
-    return new Comment({ comment: tokens.slice(1).join(' ') });
-  }
-}
-
-export class CommentFileTitle extends LDrawFileLine {
-  readonly lineType?: number = 0;
-  title: string = '';
-
-  constructor(options?: any) {
-    super();
-    Object.assign(this, options);
+  static parseTokens(tokens: string[]): Comment {
+    return new Comment(tokens);
   }
 
-  static parseTokens(tokens: string[], lineNo?: number): LDrawFileLine {
-    return new CommentFileTitle({ title: tokens.slice(1).join(' ') })
+  isCertify() {
+    return ((this.tokens.length >= 2) && (this.tokens[1] === "BFC") && (this.tokens[2] === "CERTIFY"));
   }
-}
-
-export class MetaCommand extends LDrawFileLine {
-  readonly lineType?: number = 0;
-  command: string = '';
-  additional: string = '';
-
-  constructor(options?: any) {
-    super();
-    Object.assign(this, options);
+  isCertifyCcw() {
+    if ((this.isCertify()) && (this.tokens.length == 4)) {
+      return this.tokens[3] === "CCW";
+    }
+    return true;
   }
-
-  static parseTokens(tokens: string[], lineNo?: number): LDrawFileLine {
-    return new MetaCommand({ command: tokens[1], additional: tokens.slice(2).join(' ') })
+  isAnimated() {
+    return ((this.tokens.length >= 2) && (this.tokens[1] === "SIMPLEANIM") && (this.tokens[2] === "ANIMATED"));
+  }
+  animatedName() {
+    return this.tokens[3];
+  }
+  isInvertNext() {
+    return ((this.tokens.length >= 2) && (this.tokens[1] === "BFC") && (this.tokens[2] === "INVERTNEXT"));
+  }
+  isBfcCcw() {
+    return ((this.tokens.length == 3) && (this.tokens[1] === "BFC") && (this.tokens[2] === "CCW"));
+  }
+  isBfcCw() {
+    return ((this.tokens.length == 3) && (this.tokens[1] === "BFC") && (this.tokens[2] === "CW"));
+  }
+  isStep() {
+    return ((this.tokens.length == 2) && (this.tokens[1] === "STEP"));
   }
 }
 
@@ -132,8 +88,11 @@ export class MetaCommand extends LDrawFileLine {
  *
  *   - a path relative to one of these directories, or a full path may be specified.
  */
-export class SubFile extends LDrawFileLine {
+export class SubFile implements FileLine {
   readonly lineType?: number = 1;
+  inverted: boolean = false;
+  animated: boolean = false;
+  animatedName: string | undefined;
   file: string = '';
   colour: number = 0;
   x: number = 0;
@@ -150,15 +109,17 @@ export class SubFile extends LDrawFileLine {
   i: number = 0;
 
   constructor(options: SubFile) {
-    super();
     Object.assign(this, options);
   }
 
-  static parseTokens(tokens: string[], lineNo?: number): LDrawFileLine {
+  static parseTokens(tokens: string[], inverted: boolean, animated: boolean, animatedName: string | undefined): SubFile {
     const file = tokens.slice(14).join(' ').toLowerCase().replace('\\', '/');
     const subFile = new SubFile({
       file: file,
       colour: parseInt(tokens[1], 10),
+      inverted,
+      animated,
+      animatedName,
       x: parseFloat(tokens[2]),
       y: parseFloat(tokens[3]),
       z: parseFloat(tokens[4]),
@@ -196,7 +157,7 @@ export class SubFile extends LDrawFileLine {
  * manner colour 24 must be used for the line. It should be remembered that not
  * all renderers display line types 2 and 5
  */
-export class Line extends LDrawFileLine {
+export class Line implements FileLine {
   readonly lineType?: number = 2;
   colour: number = 0;
   x1: number = 0;
@@ -207,11 +168,10 @@ export class Line extends LDrawFileLine {
   z2: number = 0;
 
   constructor(options?: any) {
-    super();
     Object.assign(this, options);
   }
 
-  static parseTokens(tokens: string[], lineNo?: number): LDrawFileLine {
+  static parseTokens(tokens: string[], lineNo?: number): Line {
     const line = new Line({
       colour: tokens[1],
       x1: tokens[2],
@@ -244,38 +204,36 @@ export class Line extends LDrawFileLine {
  *
  * See also the comments about polygons at the end of the Line Type 4 section.
  */
-export class Triangle extends LDrawFileLine {
-  readonly lineType?: number = 3;
+export class Triangle implements FileLine {
+  readonly lineType: number = 3;
+  ccw: boolean = false;
+  certified: boolean = false;
   colour: number = 0;
   x1: number = 0;
   y1: number = 0;
   z1: number = 0;
-
   x2: number = 0;
   y2: number = 0;
   z2: number = 0;
-
   x3: number = 0;
   y3: number = 0;
   z3: number = 0;
 
-
   constructor(options?: any) {
-    super();
     Object.assign(this, options);
   }
 
-  static parseTokens(tokens: string[], lineNo?: number): LDrawFileLine {
+  static parseTokens(tokens: string[], ccw: boolean, certified: boolean): Triangle {
     const triangle = new Triangle({
+      ccw,
+      certified,
       colour: tokens[1],
       x1: tokens[2],
       y1: tokens[3],
       z1: tokens[4],
-
       x2: tokens[5],
       y2: tokens[6],
       z2: tokens[7],
-
       x3: tokens[8],
       y3: tokens[9],
       z3: tokens[10],
@@ -303,45 +261,42 @@ export class Triangle extends LDrawFileLine {
  *   - x3 y3 z3 is the coordinate of the third point
  *   - x4 y4 z4 is the coordinate of the fourth point
  */
-export class Quadrilateral extends LDrawFileLine {
-  readonly lineType?: number = 4;
+export class Quadrilateral implements FileLine {
+  readonly lineType: number = 4;
+  ccw: boolean = false;
+  certified: boolean = false;
   colour: number = 0;
   x1: number = 0;
   y1: number = 0;
   z1: number = 0;
-
   x2: number = 0;
   y2: number = 0;
   z2: number = 0;
-
   x3: number = 0;
   y3: number = 0;
   z3: number = 0;
-
   x4: number = 0;
   y4: number = 0;
   z4: number = 0;
 
   constructor(options?: any) {
-    super();
     Object.assign(this, options);
   }
 
-  static parseTokens(tokens: string[], lineNo?: number): LDrawFileLine {
+  static parseTokens(tokens: string[], ccw: boolean, certified: boolean): Quadrilateral {
     const quad = new Quadrilateral({
+      ccw,
+      certified,
       colour: tokens[1],
       x1: tokens[2],
       y1: tokens[3],
       z1: tokens[4],
-
       x2: tokens[5],
       y2: tokens[6],
       z2: tokens[7],
-
       x3: tokens[8],
       y3: tokens[9],
       z3: tokens[10],
-
       x4: tokens[11],
       y4: tokens[12],
       z4: tokens[13],
@@ -354,45 +309,38 @@ export class Quadrilateral extends LDrawFileLine {
 // Line Type 5: Optional Line
 //------------------------------------------------------------------------------
 
-export class OptionalLine extends LDrawFileLine {
-  readonly lineType?: number = 5;
+export class OptionalLine implements FileLine {
+  readonly lineType: number = 5;
   colour: number = 0;
   x1: number = 0;
   y1: number = 0;
   z1: number = 0;
-
   x2: number = 0;
   y2: number = 0;
   z2: number = 0;
-
   x3: number = 0;
   y3: number = 0;
   z3: number = 0;
-
   x4: number = 0;
   y4: number = 0;
   z4: number = 0;
 
   constructor(options?: any) {
-    super();
     Object.assign(this, options);
   }
 
-  static parseTokens(tokens: string[], lineNo?: number): LDrawFileLine {
+  static parseTokens(tokens: string[]): OptionalLine {
     const optionalLine = new OptionalLine({
       colour: tokens[1],
       x1: tokens[2],
       y1: tokens[3],
       z1: tokens[4],
-
       x2: tokens[5],
       y2: tokens[6],
       z2: tokens[7],
-
       x3: tokens[8],
       y3: tokens[9],
       z3: tokens[10],
-
       x4: tokens[11],
       y4: tokens[12],
       z4: tokens[13],
@@ -401,41 +349,187 @@ export class OptionalLine extends LDrawFileLine {
   }
 }
 
-export class MultiPartModel {
-  static parse(index: number, lines: string[]) {
-
+class LDrawParser {
+  index: number = 0;
+  strings: string[];
+  constructor(data: string | undefined | null) {
+    this.strings = data ? data.trim().split('\n') : [];
   }
 }
 
-/**
- *
- */
-export class LDrawFile {
-  name: string = '';
-  lines: LDrawFileLine[] = [];
 
-  constructor(options: LDrawFile) {
-    Object.assign(this, options)
+const parseHeaders = (info: LDrawParser, doc: SinglePartDoc): void => {
+  const { strings } = info;
+  info.index = info.index + 1;
+
+  const chompString = (column: number) => info.strings[info.index++].trim().split(/\s+/).slice(column).join(' ');
+
+  let tokens = strings[info.index++].trim().split(/\s+/)
+  if (tokens.length == 2) {
+    doc.description = tokens.slice(1).join(' ');
+  } else {
+    doc.category = tokens[1];
+    doc.description = tokens.slice(2).join(' ');
   }
 
-  static parse(data: string | null): LDrawFile | null {
-    if (! data) {
-      return null;
+  doc.name = chompString(2);// strings[index].trim().split(/\s+/).slice(2).join(' ');
+  doc.author = chompString(2);
+  doc.type = chompString(2);
+  doc.license = chompString(2);
+
+  let isHeaders = true;
+  while (isHeaders) {
+    tokens = strings[info.index].trim().split(/\s+/)
+    isHeaders = tokens[0] === '' || tokens[0] === '0' // comment or empty
+    if (!isHeaders) {
+      break;
     }
 
-    const strings = data.trim().split('\n');
-    if (strings[0] = '0 FILE ') {
-      //
-    } else {
-      const lines: LDrawFileLine[] = [];
-      strings.forEach((line, index) => {
-        lines.push(LDrawFileLine.parse(line, index));
-      })
-      return new LDrawFile({ name, lines });
+    switch (tokens[1]) {
+      case '!HELP': doc.help.push(tokens.slice(2).join(' '))
+        break;
+      case '!CATEGORY': doc.category = doc.category = tokens.slice(2).join(' ')
+        break;
+      case '!KEYWORDS': doc.keywords = doc.keywords.concat(tokens.slice(2))
+        break;
+      case '!HISTORY': doc.history.push(tokens.slice(2).join(' '))
+        break;
     }
+    info.index++;
+    isHeaders = info.index < strings.length;
+  }
+}
 
+export class SinglePartDoc implements LDrawFile {
+  name: string = ''
+  description: string = ''
+  author: string = ''
+  type: string = ''
+  license: string = ''
+  help: string[] = []
+  keywords: string[] = []
+  category: string = ''
+  history: string[] = []
+
+  lines: FileLine[] = []
+
+  getDocuments(): SinglePartDoc[] {
+    return [this];
+  }
+
+  subParts(): SubFile[] {
+    let subparts: SubFile[] = [];
+    this.lines.forEach(line => {
+      if (line.lineType === 1) {
+        subparts.push(line as SubFile);
+      }
+    })
+    return subparts;
+  }
+
+  static parse(info: LDrawParser): SinglePartDoc {
+
+    let inverted = false; // next should be inverted?
+    let animated = false; // next should be animated?
+    let animatedName = undefined; //valid only if animated
+    let ccw = true; // dealing with ccw or cw ?
+    let certified = false; // certified BFC ?
+
+    const doc = new SinglePartDoc();
+    parseHeaders(info, doc);
+    for (const line of info.strings.slice(info.index)) {
+      const tokens = line.trim().split(/\s+/)
+
+      // Skip empty lines
+      if (tokens[0] === '') {
+        continue;
+      }
+      const lineType = tokens[0]
+
+      switch (lineType) {
+        case '0':
+          const comment = Comment.parseTokens(tokens)
+          doc.lines.push(comment);
+          if (comment.isInvertNext()) {
+              inverted = true;
+          } else if (comment.isCertify()) {
+              certified = true;
+              ccw = comment.isCertifyCcw();
+          } else if (comment.isBfcCcw()) {
+              ccw = true;
+          } else if (comment.isAnimated()) {
+              animated = true;
+              animatedName = comment.animatedName();
+          } else if (comment.isBfcCw()) {
+              ccw = false;
+          }
+          break;
+        case '1':
+          doc.lines.push(SubFile.parseTokens(tokens, inverted, animated, animatedName));
+          inverted = false;
+          animated = false;
+          animatedName = undefined;
+          break;
+        case '2':
+          doc.lines.push(Line.parseTokens(tokens));
+          break;
+        case '3':
+          doc.lines.push(Triangle.parseTokens(tokens, ccw, certified));
+          break;
+        case '4':
+          doc.lines.push(Quadrilateral.parseTokens(tokens, ccw, certified));
+          break;
+        case '5':
+          doc.lines.push(OptionalLine.parseTokens(tokens));
+          break;
+        default:
+          doc.lines.push(Comment.parseTokens(tokens));
+      }
+    }
+    return doc;
+  }
+}
+
+export class MultiPartDoc implements LDrawFile {
+  docs: SinglePartDoc[] = [];
+
+  getDocuments(): SinglePartDoc[] {
+    return this.docs;
+  }
+
+  static parse({ strings }: LDrawParser) {
+    let start = 0;
+    let i = start;
+    const multipart = new MultiPartDoc();
+    while (i < strings.length - 1) {
+      i++
+      if (strings[i].startsWith('0 FILE ')) {
+        multipart.docs.push(SinglePartDoc.parse({ index: 0, strings: strings.slice(start, i) }));
+        start = i;
+      }
+    }
+    multipart.docs.push(SinglePartDoc.parse({ index: 0, strings: strings.slice(start, i) }));
+    return multipart;
+  }
+}
+
+export interface LDrawFile {
+  getDocuments(): SinglePartDoc[];
+}
+export type LDrawFileTypes = MultiPartDoc | SinglePartDoc | null;
+
+const parse = (data: string | null): LDrawFileTypes => {
+  const parser = new LDrawParser(data);
+  if (parser.strings.length === 0) {
     return null;
   }
+
+  if (parser.strings[0].startsWith('0 FILE ')) {
+    return MultiPartDoc.parse(parser);
+  }
+
+  return SinglePartDoc.parse(parser);
+
 }
 
-export default LDrawFile.parse;
+export default parse;
