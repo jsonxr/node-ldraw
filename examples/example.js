@@ -24,9 +24,23 @@ async function main() {
   console.log('\n\n\n-----------jason-----------------------')
   console.log(model3);
 
-  const model2 = await ldraw.loadModel('/docs/examples/10270%20-%20Bookshop.mpd');
-  console.log('\n\n\n-----------jason-----------------------')
-  console.log(model2);
+  // const model2 = await ldraw.loadModel('/docs/examples/10270%20-%20Bookshop.mpd');
+  // console.log('\n\n\n-----------jason-----------------------')
+  // console.log(model2);
+
+  const models = Object.values(ldraw.cache.list).map(m => ({ name: m.name, type: m.type }))
+  const display = (type) => console.log(type, models.filter(m => m.type === type));
+  const displayAll = types => {
+    for (const type of types) {
+      display(type)
+    }
+    console.log('Other: ', models.filter(m => !types.includes(m.type)));
+  }
+
+  displayAll([
+    'Subpart', 'Part', 'Primitive', 'Model', '8_Primitive', '48_Primitive',
+    'Unofficial_Part', "Unofficial_Primitive", "Unofficial_Subpart"
+  ]);
 }
 
 main();

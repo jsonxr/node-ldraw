@@ -1,0 +1,9 @@
+{
+  "editor.renderWhitespace": "all",
+  "editor.renderControlCharacters": true,
+  "files.exclude": {
+    ".vscode": true,
+    "dist": true,
+    "node_modules": true
+  }
+}

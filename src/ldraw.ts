@@ -1,7 +1,5 @@
-import parse, { LDrawFile, LDrawFileTypes, MultiPartDoc, SinglePartDoc, SubFile } from './parse.js';
-import { AsyncCache } from './AsyncCache.js';
-
-
+import parse, { LDrawFileTypes, MultiPartDoc, SinglePartDoc } from './parse.js';
+import Cache from './Cache.js';
 
 // http://www.ldraw.org/library/official/'
 
@@ -24,59 +22,85 @@ const fnLoadFile = async (url: URL) => {
 // Manage Download of parts
 //----------------------------------------------------------------------------
 
-const getUrl = (filename: string): URL => {
+/**
+ *
+ * @param filename <string> - Filename to retrieve
+ *    Examples:
+ *      * http://localhost:8080/docs/examples/10270%20-%20Bookshop.mpd - (ignore origin)
+ *      * /ldraw/models/10270%20-%20Bookshop.mpd  - (use baseUrl or window.location without the path info)
+ *      * 10270%20-%20Bookshop.mpd  - (use origin or window.location with path info)
+ * @param base <URL | string | undefined> - The prefix for this filename if filename is not
+ *          http://localhost:8000
+ *
+ */
+const getUrl = (filename: string, base: URL): URL => {
   let url: URL;
   try {
-    url = new URL(filename);
+    url = new URL(filename); // This is complete http://localhost:8080/file.dat
   } catch {
-    url = new URL(window.location.href);
-    url.pathname = (filename.charAt(0) === '/')
-      ? filename
-      : url.pathname.substring(0, url.pathname.lastIndexOf('/') + 1) + filename;
+    // Get the current directory for the base url
+    const baseUrl: URL = base ?? new URL(window.location.href);
+    url = new URL(filename, baseUrl);
   }
 
   return url;
 }
 
 interface LDrawProps {
-  origin?: string;
-  parts?: string[]
+  base?: string | URL;
+  folders?: string[]
 }
-class LDraw {
-  cache = new AsyncCache<MultiPartDoc | SinglePartDoc>();
-  origin?: string = new URL(window.location.href).origin;
-  parts: string[] = ['/ldraw/parts', '/ldraw/p']
+class LDraw implements LDrawProps {
+  base = new URL(window.location.href);
+  folders = ['/ldraw/parts', '/ldraw/p', '/ldraw/models']
+
+  public cache = new Cache<MultiPartDoc | SinglePartDoc>();
 
   constructor(options: LDrawProps) {
     Object.assign(this, options);
+    // folders MUST end with a "/" to find relative paths inside files
+    this.folders = this.folders.map(f => f.endsWith('/') ? f : f + '/')
   }
 
-  async loadModel(filename: string) {
-    const url = getUrl(filename);
-    const file = await this.cache.get(filename, async (): Promise<LDrawFileTypes> => {
-      const data = await fnLoadFile(url);
-      const model = parse(data);
-      return model;
-    })
+  /**
+   *
+   * @param filename - the absolute path of the model to load.
+   */
+  async loadModel(filename: URL | string) {
+    let url: URL = (typeof filename === 'string') ? getUrl(filename, this.base) : filename;
+    const data = await fnLoadFile(url);
+    const file = parse(data);
 
     if (file) {
       for (const doc of file.getDocuments()) {
         this.cache.set(doc.name, doc);
       }
+
+      // Get array of baseURLs to try
+      const baseUrls: URL[] = []
+      for (const folder of this.folders) {
+        baseUrls.push(new URL(folder, this.base));
+      }
+      baseUrls.push(url);
+
+      // Download all files not in cache one at at time
       for (const doc of file.getDocuments()) {
-        const subparts: Promise<LDrawFile | null>[] = doc.subParts()
-          .map((s: SubFile) => this.findModel(s.file));
-        await Promise.all(subparts);
+        const filenames = doc.getSubFilenames()
+          .filter(f => !this.cache.has(f))
+        for (const subfile of filenames) {
+          // TODO: Can't Support Absolute URLs in subfile line since
+          await this.findModel(subfile, baseUrls);
+        }
       }
     }
 
     return file;
   }
 
-  async findModel(filename: string) {
+  async findModel(filename: string, baseURLs: URL[] = [this.base]) {
     const file = await this.cache.get(filename, async (): Promise<LDrawFileTypes> => {
-      for (const partFolder of this.parts) {
-        const url = `${partFolder}/${filename}`;
+      for (const base of baseURLs) {
+        const url = getUrl(filename, base);
         const model = await this.loadModel(url);
         if (model) {
           return model;
