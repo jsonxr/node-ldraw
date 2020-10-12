@@ -52,7 +52,7 @@ interface LDrawProps {
 }
 class LDraw implements LDrawProps {
   base = new URL(window.location.href);
-  folders = ['/parts', '/p', '/models']
+  folders = ['/ldraw/parts', '/ldraw/p', '/ldraw/models']
 
   public cache = new Cache<MultiPartDoc | SinglePartDoc>();
 
