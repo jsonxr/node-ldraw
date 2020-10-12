@@ -3,6 +3,19 @@ A Library for loading and parsing a LDraw files.
 
 # Install
 
+## Run Proxy server
+
+Create a server that will serve up example.html and proxy LDraw parts
+
+```sh
+# Serve entirely through a proxy
+npx http-server --proxy http://omr.ldraw.org --cors  -o examples/index.html
+
+# To speed it up substantially, serve it all locally
+yarn ldraw:install
+npx http-server --cors
+```
+
 ## Download LDraw parts library
 
 [Download LDraw parts library](https://www.ldraw.org/parts/latest-parts.html)
@@ -19,6 +32,7 @@ File Format 1.0.2:
 http://www.ldraw.org/article/218.html
 
     npm install ldraw
+
 
 
 ## ldraw.loadModel(filename, callback)

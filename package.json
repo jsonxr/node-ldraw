@@ -7,7 +7,7 @@
   "scripts": {
     "build": "./node_modules/.bin/tsc",
     "docs": "docsify serve docs",
-    "ldraw:install": "curl -o ldraw.zip http://www.ldraw.org/library/updates/complete.zip && unzip ldraw.zip",
+    "ldraw:install": "curl -o ldraw.zip http://www.ldraw.org/library/updates/complete.zip && unzip ldraw.zip -d examples && rm ldraw.zip",
     "ldraw:generate": "node dist/cli/generate-p.js > src/generated/p.ts",
     "http": "npx http-server .",
     "test": "node_modules/.bin/mocha tests",
