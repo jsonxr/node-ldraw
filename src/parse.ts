@@ -1,7 +1,84 @@
-import { distinct } from './utils.js';
+const distinct = (value: any, index: number, self: Array<any>): boolean => self.indexOf(value) === index;
 
 export interface FileLine {
-  readonly lineType?: number;
+  readonly lineType: number;
+}
+export interface Comment extends FileLine {
+  tokens: string[];
+}
+export interface SubFile {
+  inverted: boolean;
+  animated: boolean;
+  animatedName: string | undefined;
+  file: string;
+  colour: number;
+  x: number;
+  y: number;
+  z: number;
+  a: number;
+  b: number;
+  c: number;
+  d: number;
+  e: number;
+  f: number;
+  g: number;
+  h: number;
+  i: number;
+}
+export interface Line {
+  colour: number;
+  x1: number;
+  y1: number;
+  z1: number;
+  x2: number;
+  y2: number;
+  z2: number;
+}
+export interface Triangle {
+  ccw: boolean;
+  certified: boolean;
+  colour: number;
+  x1: number;
+  y1: number;
+  z1: number;
+  x2: number;
+  y2: number;
+  z2: number;
+  x3: number;
+  y3: number;
+  z3: number;
+}
+export interface Quadrilateral {
+  ccw: boolean;
+  certified: boolean;
+  colour: number;
+  x1: number;
+  y1: number;
+  z1: number;
+  x2: number;
+  y2: number;
+  z2: number;
+  x3: number;
+  y3: number;
+  z3: number;
+  x4: number;
+  y4: number;
+  z4: number;
+}
+export interface OptionalLine {
+  colour: number;
+  x1: number;
+  y1: number;
+  z1: number;
+  x2: number;
+  y2: number;
+  z2: number;
+  x3: number;
+  y3: number;
+  z3: number;
+  x4: number;
+  y4: number;
+  z4: number;
 }
 
 //------------------------------------------------------------------------------
@@ -9,7 +86,7 @@ export interface FileLine {
 //------------------------------------------------------------------------------
 
 // Line Types: https://www.ldraw.org/article/218.html
-export class Comment implements FileLine {
+class CommentImpl implements FileLine, Comment {
   readonly lineType: number = 0;
   tokens: string[];
 
@@ -17,8 +94,11 @@ export class Comment implements FileLine {
     this.tokens = tokens;
   }
 
-  static parseTokens(tokens: string[]): Comment {
-    return new Comment(tokens);
+  static parseTokens(tokens: string[]): CommentImpl {
+    if (tokens.length !== 0 && tokens[0] !== '0') {
+      throw new Error("Parsing Error");
+    }
+    return new CommentImpl(tokens);
   }
 
   isCertify() {
@@ -88,8 +168,8 @@ export class Comment implements FileLine {
  *
  *   - a path relative to one of these directories, or a full path may be specified.
  */
-export class SubFile implements FileLine {
-  readonly lineType?: number = 1;
+class SubFileImpl implements FileLine, SubFile {
+  readonly lineType: number = 1;
   inverted: boolean = false;
   animated: boolean = false;
   animatedName: string | undefined;
@@ -112,9 +192,9 @@ export class SubFile implements FileLine {
     Object.assign(this, options);
   }
 
-  static parseTokens(tokens: string[], inverted: boolean, animated: boolean, animatedName: string | undefined): SubFile {
+  static parseTokens(tokens: string[], inverted: boolean, animated: boolean, animatedName: string | undefined): SubFileImpl {
     const file = tokens.slice(14).join(' ').toLowerCase().replace('\\', '/');
-    const subFile = new SubFile({
+    const subFile = new SubFileImpl({
       file: file,
       colour: parseInt(tokens[1], 10),
       inverted,
@@ -157,8 +237,8 @@ export class SubFile implements FileLine {
  * manner colour 24 must be used for the line. It should be remembered that not
  * all renderers display line types 2 and 5
  */
-export class Line implements FileLine {
-  readonly lineType?: number = 2;
+class LineImpl implements FileLine, Line {
+  readonly lineType: number = 2;
   colour: number = 0;
   x1: number = 0;
   y1: number = 0;
@@ -167,19 +247,19 @@ export class Line implements FileLine {
   y2: number = 0;
   z2: number = 0;
 
-  constructor(options?: any) {
+  constructor(options?: Line) {
     Object.assign(this, options);
   }
 
-  static parseTokens(tokens: string[], lineNo?: number): Line {
-    const line = new Line({
-      colour: tokens[1],
-      x1: tokens[2],
-      y1: tokens[3],
-      z1: tokens[4],
-      x2: tokens[5],
-      y2: tokens[6],
-      z2: tokens[7],
+  static parseTokens(tokens: string[]): LineImpl {
+    const line = new LineImpl({
+      colour: parseInt(tokens[1], 10),
+      x1: parseFloat(tokens[2]),
+      y1: parseFloat(tokens[3]),
+      z1: parseFloat(tokens[4]),
+      x2: parseFloat(tokens[5]),
+      y2: parseFloat(tokens[6]),
+      z2: parseFloat(tokens[7]),
     });
     return line;
   }
@@ -204,39 +284,39 @@ export class Line implements FileLine {
  *
  * See also the comments about polygons at the end of the Line Type 4 section.
  */
-export class Triangle implements FileLine {
-  readonly lineType: number = 3;
-  ccw: boolean = false;
-  certified: boolean = false;
-  colour: number = 0;
-  x1: number = 0;
-  y1: number = 0;
-  z1: number = 0;
-  x2: number = 0;
-  y2: number = 0;
-  z2: number = 0;
-  x3: number = 0;
-  y3: number = 0;
-  z3: number = 0;
+class TriangleImpl implements FileLine, Triangle {
+  readonly lineType = 3;
+  ccw = false;
+  certified = false;
+  colour = 0;
+  x1 = 0;
+  y1 = 0;
+  z1 = 0;
+  x2 = 0;
+  y2 = 0;
+  z2 = 0;
+  x3 = 0;
+  y3 = 0;
+  z3 = 0;
 
-  constructor(options?: any) {
+  constructor(options?: Triangle) {
     Object.assign(this, options);
   }
 
-  static parseTokens(tokens: string[], ccw: boolean, certified: boolean): Triangle {
-    const triangle = new Triangle({
+  static parseTokens(tokens: string[], ccw: boolean, certified: boolean): TriangleImpl {
+    const triangle = new TriangleImpl({
       ccw,
       certified,
-      colour: tokens[1],
-      x1: tokens[2],
-      y1: tokens[3],
-      z1: tokens[4],
-      x2: tokens[5],
-      y2: tokens[6],
-      z2: tokens[7],
-      x3: tokens[8],
-      y3: tokens[9],
-      z3: tokens[10],
+      colour: parseInt(tokens[1], 10),
+      x1: parseFloat(tokens[2]),
+      y1: parseFloat(tokens[3]),
+      z1: parseFloat(tokens[4]),
+      x2: parseFloat(tokens[5]),
+      y2: parseFloat(tokens[6]),
+      z2: parseFloat(tokens[7]),
+      x3: parseFloat(tokens[8]),
+      y3: parseFloat(tokens[9]),
+      z3: parseFloat(tokens[10]),
     });
     return triangle;
   }
@@ -261,45 +341,45 @@ export class Triangle implements FileLine {
  *   - x3 y3 z3 is the coordinate of the third point
  *   - x4 y4 z4 is the coordinate of the fourth point
  */
-export class Quadrilateral implements FileLine {
-  readonly lineType: number = 4;
-  ccw: boolean = false;
-  certified: boolean = false;
-  colour: number = 0;
-  x1: number = 0;
-  y1: number = 0;
-  z1: number = 0;
-  x2: number = 0;
-  y2: number = 0;
-  z2: number = 0;
-  x3: number = 0;
-  y3: number = 0;
-  z3: number = 0;
-  x4: number = 0;
-  y4: number = 0;
-  z4: number = 0;
+class QuadrilateralImpl implements FileLine, Quadrilateral {
+  readonly lineType = 4;
+  ccw = false;
+  certified = false;
+  colour = 0;
+  x1= 0;
+  y1= 0;
+  z1= 0;
+  x2= 0;
+  y2= 0;
+  z2= 0;
+  x3= 0;
+  y3= 0;
+  z3= 0;
+  x4= 0;
+  y4= 0;
+  z4= 0;
 
-  constructor(options?: any) {
+  constructor(options?: Quadrilateral) {
     Object.assign(this, options);
   }
 
-  static parseTokens(tokens: string[], ccw: boolean, certified: boolean): Quadrilateral {
-    const quad = new Quadrilateral({
+  static parseTokens(tokens: string[], ccw: boolean, certified: boolean): QuadrilateralImpl {
+    const quad = new QuadrilateralImpl({
       ccw,
       certified,
-      colour: tokens[1],
-      x1: tokens[2],
-      y1: tokens[3],
-      z1: tokens[4],
-      x2: tokens[5],
-      y2: tokens[6],
-      z2: tokens[7],
-      x3: tokens[8],
-      y3: tokens[9],
-      z3: tokens[10],
-      x4: tokens[11],
-      y4: tokens[12],
-      z4: tokens[13],
+      colour: parseInt(tokens[1], 10),
+      x1: parseFloat(tokens[2]),
+      y1: parseFloat(tokens[3]),
+      z1: parseFloat(tokens[4]),
+      x2: parseFloat(tokens[5]),
+      y2: parseFloat(tokens[6]),
+      z2: parseFloat(tokens[7]),
+      x3: parseFloat(tokens[8]),
+      y3: parseFloat(tokens[9]),
+      z3: parseFloat(tokens[10]),
+      x4: parseFloat(tokens[11]),
+      y4: parseFloat(tokens[12]),
+      z4: parseFloat(tokens[13]),
     });
     return quad;
   }
@@ -309,41 +389,41 @@ export class Quadrilateral implements FileLine {
 // Line Type 5: Optional Line
 //------------------------------------------------------------------------------
 
-export class OptionalLine implements FileLine {
-  readonly lineType: number = 5;
-  colour: number = 0;
-  x1: number = 0;
-  y1: number = 0;
-  z1: number = 0;
-  x2: number = 0;
-  y2: number = 0;
-  z2: number = 0;
-  x3: number = 0;
-  y3: number = 0;
-  z3: number = 0;
-  x4: number = 0;
-  y4: number = 0;
-  z4: number = 0;
+class OptionalLineImpl implements FileLine, OptionalLine {
+  readonly lineType = 5;
+  colour = 0;
+  x1 = 0;
+  y1 = 0;
+  z1 = 0;
+  x2 = 0;
+  y2 = 0;
+  z2 = 0;
+  x3 = 0;
+  y3 = 0;
+  z3 = 0;
+  x4 = 0;
+  y4 = 0;
+  z4 = 0;
 
-  constructor(options?: any) {
+  constructor(options?: OptionalLine) {
     Object.assign(this, options);
   }
 
-  static parseTokens(tokens: string[]): OptionalLine {
-    const optionalLine = new OptionalLine({
-      colour: tokens[1],
-      x1: tokens[2],
-      y1: tokens[3],
-      z1: tokens[4],
-      x2: tokens[5],
-      y2: tokens[6],
-      z2: tokens[7],
-      x3: tokens[8],
-      y3: tokens[9],
-      z3: tokens[10],
-      x4: tokens[11],
-      y4: tokens[12],
-      z4: tokens[13],
+  static parseTokens(tokens: string[]): OptionalLineImpl {
+    const optionalLine = new OptionalLineImpl({
+      colour: parseInt(tokens[1], 10),
+      x1: parseFloat(tokens[2]),
+      y1: parseFloat(tokens[3]),
+      z1: parseFloat(tokens[4]),
+      x2: parseFloat(tokens[5]),
+      y2: parseFloat(tokens[6]),
+      z2: parseFloat(tokens[7]),
+      x3: parseFloat(tokens[8]),
+      y3: parseFloat(tokens[9]),
+      z3: parseFloat(tokens[10]),
+      x4: parseFloat(tokens[11]),
+      y4: parseFloat(tokens[12]),
+      z4: parseFloat(tokens[13]),
     });
     return optionalLine;
   }
@@ -361,59 +441,79 @@ class LDrawParser {
 const parseHeaders = (info: LDrawParser, doc: SinglePartDoc): void => {
   const { strings } = info;
 
-  const chompString = (command: string, column: number) => {
-    const theTokens = info.strings[info.index].trim().split(/\s+/)
-    if (theTokens[1] !== command) {
-      throw new Error(`Error parsing: ${doc.name} Expected: ${command} Received: ${theTokens[1]}`);
-    }
-    info.index++;
-    return theTokens.slice(column).join(' ');
-  }
+  // const chompString = (command: string, column: number) => {
+  //   const theTokens = info.strings[info.index].trim().split(/\s+/)
+  //   if (theTokens[1] !== command) {
+  //     throw new Error(`Error parsing: ${doc.name} Expected: ${command} Received: ${theTokens[1]}`);
+  //   }
+  //   info.index++;
+  //   return theTokens.slice(column).join(' ');
+  // }
 
-  const parseType = (doc: SinglePartDoc, info: LDrawParser) => {
-    const theTokens = info.strings[info.index].trim().split(/\s+/)
-    if (theTokens[1] !== '!LDRAW_ORG') {
-      throw new Error(`Error parsing: ${doc.name} Expected: !LDRAW_ORG Received: ${theTokens[1]}`);
-    }
-    doc.type = theTokens[2];
-    doc.update = theTokens.slice(3).join(' ');
-    info.index++;
-  }
+  // const parseType = (doc: SinglePartDoc, info: LDrawParser) => {
+  //   const theTokens = info.strings[info.index].trim().split(/\s+/)
+  //   if (theTokens[1] !== '!LDRAW_ORG') {
+  //     throw new Error(`Error parsing: ${doc.name} Expected: !LDRAW_ORG Received: ${theTokens[1]}`);
+  //   }
+  //   doc.type = theTokens[2];
+  //   doc.update = theTokens.slice(3).join(' ');
+  //   info.index++;
+  // }
 
-  let tokens = strings[info.index].trim().split(/\s+/)
-  if (tokens.length == 2) {
-    doc.description = tokens.slice(1).join(' ');
-  } else {
-    doc.category = tokens[1];
-    doc.description = tokens.slice(2).join(' ');
-  }
-  info.index++
 
-  doc.name = chompString('Name:', 2).replace('\\', '/').toLowerCase();
-  doc.author = chompString('Author:', 2);
-  parseType(doc, info);
-  doc.license = chompString('!LICENSE', 2);
+
+
+
 
   let isHeaders = true;
   while (isHeaders) {
-    tokens = strings[info.index].trim().split(/\s+/)
-    isHeaders = tokens[0] === '' || tokens[0] === '0' // comment or empty
+    const tokens = strings[info.index].trim().split(/\s+/)
+    const comment = CommentImpl.parseTokens(tokens);
+
+    isHeaders = info.index < strings.length && (tokens[0] === '' || tokens[0] === '0') // comment or empty
     if (!isHeaders) {
       break;
     }
 
-    switch (tokens[1]) {
-      case '!HELP': doc.help.push(tokens.slice(2).join(' '))
-        break;
-      case '!CATEGORY': doc.category = doc.category = tokens.slice(2).join(' ')
-        break;
-      case '!KEYWORDS': doc.keywords = doc.keywords.concat(tokens.slice(2))
-        break;
-      case '!HISTORY': doc.history.push(tokens.slice(2).join(' '))
-        break;
+
+    if (info.index === 0) {
+      if (tokens.length == 2) {
+        // 0 description
+        doc.description = tokens.slice(1).join(' ');
+      } else {
+        // 0 brick 1 x 1
+        doc.category = tokens[1];
+        doc.description = tokens.slice(2).join(' ');
+      }
+    } else {
+      switch (tokens[1]) {
+        case 'Name:':
+          doc.name = tokens.slice(2).join(' ').replace('\\', '/').toLowerCase();
+          break;
+        case 'Author:':
+          doc.author = tokens.slice(2).join(' ').replace('\\', '/').toLowerCase();
+          break
+        case '!LDRAW_ORG':
+            doc.type = tokens[2];
+            doc.update = tokens.slice(3).join(' ');
+          break;
+        case '!LICENSE':
+          doc.license = tokens.slice(2).join(' ')
+          break;
+        case '!HELP':
+          doc.help.push(tokens.slice(2).join(' '))
+          break;
+        case '!CATEGORY':
+          doc.category = tokens.slice(2).join(' ')
+          break;
+        case '!KEYWORDS':
+          doc.keywords = doc.keywords.concat(tokens.slice(2))
+          break;
+        case '!HISTORY': doc.history.push(tokens.slice(2).join(' '))
+          break;
+      }
     }
-    info.index++;
-    isHeaders = info.index < strings.length;
+    info.index++
   }
 }
 
@@ -438,8 +538,8 @@ export class SinglePartDoc implements LDrawFile {
   getSubFilenames(): string[] {
     return this.lines
       // .filter(l => l.lineType === 1)
-      .filter(l => l instanceof SubFile)
-      .map(l => (l as SubFile).file)
+      .filter(l => l instanceof SubFileImpl)
+      .map(l => (l as SubFileImpl).file)
       .filter(distinct);
   }
 
@@ -455,16 +555,12 @@ export class SinglePartDoc implements LDrawFile {
     parseHeaders(info, doc);
     for (const line of info.strings.slice(info.index)) {
       const tokens = line.trim().split(/\s+/)
-
-      // Skip empty lines
-      if (tokens[0] === '') {
-        continue;
-      }
       const lineType = tokens[0]
 
       switch (lineType) {
+        case '': // Fallthrough to 0
         case '0':
-          const comment = Comment.parseTokens(tokens)
+          const comment: CommentImpl = CommentImpl.parseTokens(tokens);
           doc.lines.push(comment);
           if (comment.isInvertNext()) {
               inverted = true;
@@ -481,25 +577,25 @@ export class SinglePartDoc implements LDrawFile {
           }
           break;
         case '1':
-          doc.lines.push(SubFile.parseTokens(tokens, inverted, animated, animatedName));
+          doc.lines.push(SubFileImpl.parseTokens(tokens, inverted, animated, animatedName));
           inverted = false;
           animated = false;
           animatedName = undefined;
           break;
         case '2':
-          doc.lines.push(Line.parseTokens(tokens));
+          doc.lines.push(LineImpl.parseTokens(tokens));
           break;
         case '3':
-          doc.lines.push(Triangle.parseTokens(tokens, ccw, certified));
+          doc.lines.push(TriangleImpl.parseTokens(tokens, ccw, certified));
           break;
         case '4':
-          doc.lines.push(Quadrilateral.parseTokens(tokens, ccw, certified));
+          doc.lines.push(QuadrilateralImpl.parseTokens(tokens, ccw, certified));
           break;
         case '5':
-          doc.lines.push(OptionalLine.parseTokens(tokens));
+          doc.lines.push(OptionalLineImpl.parseTokens(tokens));
           break;
         default:
-          doc.lines.push(Comment.parseTokens(tokens));
+          doc.lines.push(CommentImpl.parseTokens(tokens));
       }
     }
     return doc;

@@ -3,6 +3,7 @@
   "version": "0.1.1",
   "description": "A Library for parsing an LDraw file",
   "main": "src/ldraw.js",
+  "module": "src/index.es6.js",
   "type": "module",
   "scripts": {
     "build": "./node_modules/.bin/tsc",
