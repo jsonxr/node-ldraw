@@ -7,7 +7,7 @@ import LDraw from '../dist/ldraw.js';
 // })
 const ldraw = new LDraw({
   hostname: 'http://localhost:8080',
-  parts: ['/ldraw/parts', '/ldraw/p'],
+  folders: ['/static/ldraw/parts', '/static/ldraw/p'],
 })
 
 
@@ -15,14 +15,28 @@ async function main() {
   // const part = await ldraw.findModel('rect.dat');
   // console.log('part: ', part);
   //const model = ldraw.searchModel('3001.dat');
+// const model = await ldraw.loadModel('/parts/3001.dat');
+// console.log(model);
+//'/media/LDraw%20models/10270-1%20-%20Bookshop/10270%20-%20Bookshop.mpd'
+const model1 = await ldraw.loadModel(
+  '/media/LDraw%20models/10270-1%20-%20Bookshop/10270%20-%20Bookshop.mpd'
+  )
+console.log(model1);
+
+// const model2 = await ldraw.findModel('3005.dat')
+// console.log(model2);
 
   // const model = await ldraw.loadModel('10270%20-%20Bookshop.mpd');
   // console.log(model);
   // const model2 = await ldraw.loadModel('/examples/10270%20-%20Bookshop.mpd');
   // console.log(model2);
-  const model3 = await ldraw.loadModel('http://localhost:8080/docs/examples/10270%20-%20Bookshop.mpd');
-  console.log('\n\n\n-----------jason-----------------------')
-  console.log(model3);
+  // const model3 = await ldraw.loadModel('http://localhost:8080/docs/examples/10270%20-%20Bookshop.mpd');
+  // console.log('\n\n\n-----------jason-----------------------')
+
+  // const model3 = await ldraw.loadModel('http://localhost:8080/docs/examples/10270%20-%20Bookshop.mpd');
+  // console.log('\n\n\n-----------jason-----------------------')
+  // console.log(model3);
+
 
   // const model2 = await ldraw.loadModel('/docs/examples/10270%20-%20Bookshop.mpd');
   // console.log('\n\n\n-----------jason-----------------------')
