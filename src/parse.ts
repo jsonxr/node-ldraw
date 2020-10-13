@@ -95,8 +95,9 @@ class CommentImpl implements FileLine, Comment {
   }
 
   static parseTokens(tokens: string[]): CommentImpl {
-    if (tokens.length !== 0 && tokens[0] !== '0') {
-      throw new Error("Parsing Error");
+    if (!['', '0'].includes(tokens[0])) {
+      console.log('Error: ', tokens);
+      throw new Error("Parsing Error: ");
     }
     return new CommentImpl(tokens);
   }
@@ -465,16 +466,14 @@ const parseHeaders = (info: LDrawParser, doc: SinglePartDoc): void => {
 
 
 
-  let isHeaders = true;
-  while (isHeaders) {
+  while (info.index < strings.length) {
     const tokens = strings[info.index].trim().split(/\s+/)
-    const comment = CommentImpl.parseTokens(tokens);
-
-    isHeaders = info.index < strings.length && (tokens[0] === '' || tokens[0] === '0') // comment or empty
-    if (!isHeaders) {
+    if (!['','0'].includes(tokens[0])) {
       break;
     }
 
+    const comment = CommentImpl.parseTokens(tokens);
+    doc.lines.push(comment);
 
     if (info.index === 0) {
       if (tokens.length == 2) {
@@ -519,6 +518,7 @@ const parseHeaders = (info: LDrawParser, doc: SinglePartDoc): void => {
 
 export class SinglePartDoc implements LDrawFile {
   name: string = ''
+  folder?: string
   description: string = ''
   author: string = ''
   type: string = ''
@@ -530,6 +530,11 @@ export class SinglePartDoc implements LDrawFile {
   update: string = ''
 
   lines: FileLine[] = []
+
+  toString() {
+    //  <3001.dat:part>
+    return `<${this.name}:${this.type}>`
+  }
 
   getDocuments(): SinglePartDoc[] {
     return [this];

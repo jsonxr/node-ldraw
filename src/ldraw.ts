@@ -98,21 +98,21 @@ class LDraw implements LDrawProps {
   }
 
   async findModel(filename: string, base?: URL[]) {
-
+    const baseUrls: { url: URL, folder?: string }[] = base ? base.map(b => ({url: b})) : []
     // Get array of baseURLs to try
-    const baseUrls: URL[] = base ?? []
     if (baseUrls.length === 0) {
       for (const folder of this.folders) {
-        baseUrls.push(new URL(folder, this.base));
+        baseUrls.push({ folder, url: new URL(folder, this.base) });
       }
-      baseUrls.push(new URL(window.location.href));
+      baseUrls.push({ url: new URL(window.location.href) });
     }
 
     const file = await this.cache.get(filename, async (): Promise<LDrawFileTypes> => {
-      for (const base of baseUrls) {
-        const url = getUrl(filename, base);
+      for (const baseUrl of baseUrls) {
+        const url = getUrl(filename, baseUrl.url);
         const model = await this.loadModel(url);
         if (model) {
+          model.folder = baseUrl.folder;
           return model;
         }
       }

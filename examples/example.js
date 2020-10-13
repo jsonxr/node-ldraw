@@ -42,8 +42,15 @@ console.log(model1);
   // console.log('\n\n\n-----------jason-----------------------')
   // console.log(model2);
 
-  const models = Object.values(ldraw.cache.list).map(m => ({ name: m.name, type: m.type }))
-  const display = (type) => console.log(type, models.filter(m => m.type === type));
+  window.ldraw = ldraw;
+
+  const models = Object.values(ldraw.cache.list)
+  const display = (type) => {
+    const filtered = models.filter(m => m.type === type).map(m => ({
+      ...m, link: `https://www.ldraw.org/parts/official-part-lookup.html?partid=${m.name}`
+    }));
+    console.log(type, filtered);
+  };
   const displayAll = types => {
     for (const type of types) {
       display(type)
@@ -55,6 +62,21 @@ console.log(model1);
     'Subpart', 'Part', 'Primitive', 'Model', '8_Primitive', '48_Primitive',
     'Unofficial_Part', "Unofficial_Primitive", "Unofficial_Subpart"
   ]);
+
+  const part = ldraw.cache.list["3001.dat"]
+
+
+  const div = document.getElementById('root')
+
+    const filtered = models.filter(m => m.type === 'Part').map(m => ({
+      ...m, link: `https://www.ldraw.org/parts/official-part-lookup.html?partid=${m.name}`
+    })).forEach(m => {
+      const d = document.createElement('div');
+      d.style.display = 'inline';
+      d.innerHTML = `<a href="${m.link}"><img src="https://www.ldraw.org/library/official/images/parts/${m.name.replace(".dat", ".png")}"><br>${m.name}</a>`
+      div.appendChild(d);
+    })
+
 }
 
 main();

@@ -1,7 +1,30 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head><title>Example</title></head>
+  <head>
+    <title>Example</title>
+    <style>
+      body { background-color: white;}
+      #root {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-items: bottom;
+      }
+      #root div {
+        height: 100px;
+        width: 100px;
+        border: 1px solid red;
+        align-items: bottom;
+      }
+      #root div a img {
+        max-height: 100px;
+        max-width: 100px;
+      }
+    </style>
+  </head>
   <body>
     <script type="module" src="./example.js"></script>
+    <div id="root">
+    </div>
   </body>
 </html>
