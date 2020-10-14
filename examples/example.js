@@ -1,11 +1,13 @@
-import LDraw from '../dist/ldraw.js';
+import LDraw from '../dist/LDraw.js';
+import { SinglePartDoc } from '../dist/parse.js';
 
 // const Ldraw = (options) => { }
 // ldraw = new LDraw({
 //   server: 'https://www.ldraw.org/library/official/parts',
 //   parts: ['/parts', '/p'],
 // })
-const ldraw = new LDraw({
+const ldraw = window.ldraw = new LDraw({
+  fetch: fetch,
   hostname: 'http://localhost:8080',
   folders: ['/static/ldraw/parts', '/static/ldraw/p'],
 })
@@ -37,16 +39,18 @@ async function main() {
   // console.log('\n\n\n-----------jason-----------------------')
   // console.log(model3);
 
+  const showSubParts = (p) => {
 
-  const model2 = await ldraw.loadModel('/docs/examples/10270%20-%20Bookshop.mpd');
+  }
+
+  const model2 = await ldraw.loadModel('/media/LDraw%20models/10270-1%20-%20Bookshop/10270%20-%20Bookshop.mpd');
 
 
   //console.log('\n\n\n-----------jason-----------------------')
   // console.log(model2);
 
-  const part = await ldraw.findModel('3069bpw1.dat');
-  console.log('part: ', part);
-  window.ldraw = ldraw;
+  //const part = await ldraw.findModel('3069bpw1.dat');
+
 
   const models = Object.values(ldraw.list)
   const display = (type) => {
@@ -75,7 +79,7 @@ async function main() {
     missing.appendChild(li);
   })
 
-  const parts = models.filter(m => m.type === 'Part');
+  const parts = models.filter(m => ['Part', 'Unofficial_Part'].includes(m.type));
   document.getElementById('partCount').innerText = parts.length;
 
   const div = document.getElementById('root')

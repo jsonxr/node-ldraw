@@ -61,12 +61,12 @@ Commands can be one of the following:
 ```javascript
 // 1 - subfile
 var subfile = {
+  file: '3001.dat'
   type: 1, color: 2,
   x: 0, y: 0, z: 0,
   a: 0, b: 0, c: 0,
   d: 0, e: 0, f: 0,
   g: 0, h: 0, i: 0,
-  file: '3001.dat'
 }
 
 // 2 - line
@@ -167,3 +167,11 @@ var cmd = '1 0 9.99999904632568359375 -7.99999904632568359375 10 0 0 -1 0 0.9999
 var cleaned = ldraw.cleanFile(cmd);
 assert.equal(cleaned, '1 0 10 -8 10 0 0 -1 0 1 0 1 0 0 3623.dat');
 ```
+
+## Structure
+
+MPD (MultiPartDocument)
+  - *.ldr type=Model
+  - *.dat type=Unofficial_Part
+  - *.dat type=Unofficial_Primitive
+  - *.dat type=Unofficial_Subpart
