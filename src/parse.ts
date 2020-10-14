@@ -431,9 +431,11 @@ class OptionalLineImpl implements FileLine, OptionalLine {
 }
 
 class LDrawParser {
+  text: string;
   index: number = 0;
   strings: string[];
   constructor(data: string | undefined | null) {
+    this.text = data ?? '';
     this.strings = data ? data.trim().split('\n') : [];
   }
 }
@@ -441,30 +443,6 @@ class LDrawParser {
 
 const parseHeaders = (info: LDrawParser, doc: SinglePartDoc): void => {
   const { strings } = info;
-
-  // const chompString = (command: string, column: number) => {
-  //   const theTokens = info.strings[info.index].trim().split(/\s+/)
-  //   if (theTokens[1] !== command) {
-  //     throw new Error(`Error parsing: ${doc.name} Expected: ${command} Received: ${theTokens[1]}`);
-  //   }
-  //   info.index++;
-  //   return theTokens.slice(column).join(' ');
-  // }
-
-  // const parseType = (doc: SinglePartDoc, info: LDrawParser) => {
-  //   const theTokens = info.strings[info.index].trim().split(/\s+/)
-  //   if (theTokens[1] !== '!LDRAW_ORG') {
-  //     throw new Error(`Error parsing: ${doc.name} Expected: !LDRAW_ORG Received: ${theTokens[1]}`);
-  //   }
-  //   doc.type = theTokens[2];
-  //   doc.update = theTokens.slice(3).join(' ');
-  //   info.index++;
-  // }
-
-
-
-
-
 
   while (info.index < strings.length) {
     const tokens = strings[info.index].trim().split(/\s+/)
@@ -516,7 +494,16 @@ const parseHeaders = (info: LDrawParser, doc: SinglePartDoc): void => {
   }
 }
 
+export interface LDrawFile {
+  text: string;
+  references?: string[]
+  getDocuments(): SinglePartDoc[];
+  getSubFilenames(): string[];
+}
+
 export class SinglePartDoc implements LDrawFile {
+  text: string = ''
+  references: string[] = []
   name: string = ''
   folder?: string
   description: string = ''
@@ -557,6 +544,7 @@ export class SinglePartDoc implements LDrawFile {
     let certified = false; // certified BFC ?
 
     const doc = new SinglePartDoc();
+    doc.text = info.text;
     parseHeaders(info, doc);
     for (const line of info.strings.slice(info.index)) {
       const tokens = line.trim().split(/\s+/)
@@ -608,6 +596,8 @@ export class SinglePartDoc implements LDrawFile {
 }
 
 export class MultiPartDoc implements LDrawFile {
+  text: string = '';
+  references: string[] = []
   docs: SinglePartDoc[] = [];
 
   getDocuments(): SinglePartDoc[] {
@@ -622,26 +612,24 @@ export class MultiPartDoc implements LDrawFile {
   }
 
 
-  static parse({ strings }: LDrawParser) {
+  static parse(parser: LDrawParser) {
+    const { strings } = parser;
     let start = 0;
     let i = start;
     const multipart = new MultiPartDoc();
+    multipart.text = parser.text ?? '';
     while (i < strings.length - 1) {
       i++
       if (strings[i].startsWith('0 FILE ')) {
-        multipart.docs.push(SinglePartDoc.parse({ index: 0, strings: strings.slice(start + 1, i) }));
+        multipart.docs.push(SinglePartDoc.parse({ text: strings.slice(start + 1, i).join('\n'), index: 0, strings: strings.slice(start + 1, i) }));
         start = i;
       }
     }
-    multipart.docs.push(SinglePartDoc.parse({ index: 0, strings: strings.slice(start + 1, i) }));
+    multipart.docs.push(SinglePartDoc.parse({ text: strings.slice(start + 1, i).join('\n'), index: 0, strings: strings.slice(start + 1, i) }));
     return multipart;
   }
 }
 
-export interface LDrawFile {
-  getDocuments(): SinglePartDoc[];
-  getSubFilenames(): string[];
-}
 export type LDrawFileTypes = MultiPartDoc | SinglePartDoc | null;
 
 const parse = (data: string | null): LDrawFileTypes => {

@@ -18,10 +18,10 @@ async function main() {
 // const model = await ldraw.loadModel('/parts/3001.dat');
 // console.log(model);
 //'/media/LDraw%20models/10270-1%20-%20Bookshop/10270%20-%20Bookshop.mpd'
-const model1 = await ldraw.loadModel(
-  '/media/LDraw%20models/10270-1%20-%20Bookshop/10270%20-%20Bookshop.mpd'
-  )
-console.log(model1);
+// const model1 = await ldraw.loadModel(
+//   '/media/LDraw%20models/10270-1%20-%20Bookshop/10270%20-%20Bookshop.mpd'
+//   )
+// console.log(model1);
 
 // const model2 = await ldraw.findModel('3005.dat')
 // console.log(model2);
@@ -38,13 +38,17 @@ console.log(model1);
   // console.log(model3);
 
 
-  // const model2 = await ldraw.loadModel('/docs/examples/10270%20-%20Bookshop.mpd');
-  // console.log('\n\n\n-----------jason-----------------------')
+  const model2 = await ldraw.loadModel('/docs/examples/10270%20-%20Bookshop.mpd');
+
+
+  //console.log('\n\n\n-----------jason-----------------------')
   // console.log(model2);
 
+  const part = await ldraw.findModel('3069bpw1.dat');
+  console.log('part: ', part);
   window.ldraw = ldraw;
 
-  const models = Object.values(ldraw.cache.list)
+  const models = Object.values(ldraw.list)
   const display = (type) => {
     const filtered = models.filter(m => m.type === type).map(m => ({
       ...m, link: `https://www.ldraw.org/parts/official-part-lookup.html?partid=${m.name}`
@@ -63,19 +67,34 @@ console.log(model1);
     'Unofficial_Part', "Unofficial_Primitive", "Unofficial_Subpart"
   ]);
 
-  const part = ldraw.cache.list["3001.dat"]
 
+  const missing = document.getElementById('missing');
+  ldraw.missing.forEach((m) => {
+    const li = document.createElement('li');
+    li.innerHTML = m;
+    missing.appendChild(li);
+  })
+
+  const parts = models.filter(m => m.type === 'Part');
+  document.getElementById('partCount').innerText = parts.length;
 
   const div = document.getElementById('root')
+  div.innerHTML = '';
+  parts.map(m => ({
+    ...m, link: `https://www.ldraw.org/parts/official-part-lookup.html?partid=${m.name}`
+  })).forEach(m => {
+    const a = document.createElement('a');
+    a.href = `https://www.ldraw.org/parts/official-part-lookup.html?partid=${m.name}`;
+    a.innerHTML = `
+        <div>
+          <img src="https://www.ldraw.org/library/official/images/parts/${m.name.replace(".dat", ".png")}">
+        </div>
+        <span>${m.name}</span>
+      `
+    div.appendChild(a);
+    div.appendChild(a);
+  })
 
-    const filtered = models.filter(m => m.type === 'Part').map(m => ({
-      ...m, link: `https://www.ldraw.org/parts/official-part-lookup.html?partid=${m.name}`
-    })).forEach(m => {
-      const d = document.createElement('div');
-      d.style.display = 'inline';
-      d.innerHTML = `<a href="${m.link}"><img src="https://www.ldraw.org/library/official/images/parts/${m.name.replace(".dat", ".png")}"><br>${m.name}</a>`
-      div.appendChild(d);
-    })
 
 }
 

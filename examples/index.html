@@ -7,24 +7,35 @@
       #root {
         display: flex;
         flex-wrap: wrap;
-        align-items: center;
-        justify-items: bottom;
       }
-      #root div {
-        height: 100px;
+      #root a {
+        display: flex;
+        flex-direction: column;
+        height: 140px;
         width: 100px;
-        border: 1px solid red;
-        align-items: bottom;
+        border: 1px solid green;
+        align-content:space-between;
+        justify-content: space-between;
+        align-items: center;
       }
-      #root div a img {
-        max-height: 100px;
-        max-width: 100px;
+      #root a div {
+        display: flex;
+        flex-grow: 1;
+        width: 100%;
+        align-items: center;
+        justify-content: center;
+      }
+      #root a div img {
+        display: flex;
+        max-height: 98px;
+        max-width: 98px;
       }
     </style>
   </head>
   <body>
     <script type="module" src="./example.js"></script>
-    <div id="root">
-    </div>
+    <p>Parts: <span id="partCount">loading...</span></p>
+    <ul id="missing"></ul>
+    <div id="root"></div>
   </body>
 </html>

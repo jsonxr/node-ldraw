@@ -9,11 +9,11 @@ Create a server that will serve up example.html and proxy LDraw parts
 
 ```sh
 # Serve entirely through a proxy
-npx http-server --proxy http://omr.ldraw.org --cors  -o examples/index.html
+npx http-server --proxy http://omr.ldraw.org --cors -o examples/index.html
 
 # To speed it up substantially, serve it all locally
 yarn ldraw:install
-npx http-server --cors
+npx http-server --cors -o examples/index.html
 ```
 
 ## Download LDraw parts library

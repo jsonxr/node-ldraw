@@ -9,9 +9,9 @@ export class Cache<T> {
     this.list[key] = value;
   }
 
-  public get = async (key: string, fn: () => Promise<T | null>): Promise<T | null> => {
+  public get = async (key: string, fn?: () => Promise<T | null>): Promise<T | null> => {
     let value: T | null = this.list[key];
-    if (!value) {
+    if (!value && fn) {
       value = await fn();
       if (value) {
         this.set(key, value);

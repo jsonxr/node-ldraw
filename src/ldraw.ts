@@ -53,8 +53,18 @@ interface LDrawProps {
 class LDraw implements LDrawProps {
   base = new URL(window.location.href);
   folders = ['/ldraw/parts', '/ldraw/p', '/ldraw/models']
+  _missing: string[] = []
 
   public cache = new Cache<MultiPartDoc | SinglePartDoc>();
+
+
+  public get list(): Record<string, MultiPartDoc | SinglePartDoc> {
+    return this.cache.list;
+  }
+
+  public get missing(): string[] {
+    return this._missing;
+  }
 
   constructor(options: LDrawProps) {
     Object.assign(this, options);
@@ -85,11 +95,16 @@ class LDraw implements LDrawProps {
 
       // Download all files not in cache one at at time
       for (const doc of file.getDocuments()) {
-        const filenames = doc.getSubFilenames()
-          .filter(f => !this.cache.has(f))
-        for (const subfile of filenames) {
-          // TODO: Can't Support Absolute URLs in subfile line since
-          await this.findModel(subfile, baseUrls);
+        const filenames = doc.getSubFilenames();
+        for (const f of filenames) {
+          let subfile: LDrawFileTypes
+          if (this.cache.has(f)) {
+            subfile = await this.cache.get(f);
+          } else {
+            // TODO: Can't Support Absolute URLs in subfile line since
+            subfile = await this.findModel(f, baseUrls);
+          }
+          subfile?.references.push(doc.name);
         }
       }
     }
@@ -112,127 +127,18 @@ class LDraw implements LDrawProps {
         const url = getUrl(filename, baseUrl.url);
         const model = await this.loadModel(url);
         if (model) {
-          model.folder = baseUrl.folder;
           return model;
         }
       }
       return null;
     })
+
+    if (!file) {
+      this._missing.push(filename);
+    }
+
     return file;
   }
 }
-
-// /**
-//  *
-//  * loadModel
-//  * searchForFile
-//  * downloadAndParse
-//  *
-//  *
-//  *
-//  */
-// export class Download {
-//   private static downloads: Record<string, Download> = {}
-
-//   private server: string | undefined;
-//   private parts: string[];
-//   private name: string;
-
-//   private file: MultiPartDoc | SinglePartDoc | null = null;
-//   private listeners: Function[] = [];
-
-//   private constructor(server: string | undefined, parts: string[], name: string) {
-//     this.server = server;
-//     this.parts = parts;
-//     this.name = name;
-//     this.downloadAndParse();
-//   }
-
-//   static async loadModel(url: URL): Promise<LDrawFile> {
-//     const data = await fnLoadFile(url);
-//     return parse(data);
-//   }
-
-//   static async findModel(server: string | undefined, parts: string[], name: string): Promise<LDrawFile> {
-//     let d: Download | undefined = Download.downloads[name];
-
-//     // If there isn't a download yet, create one
-//     if (!d) {
-//       d = new Download(server, parts, name);
-//       Download.downloads[name] = d;
-//     }
-
-//     return d.onComplete();
-//   }
-
-//   /**
-//    * Download a part from the server
-//    * @param server
-//    * @param filename
-//    */
-//   private async searchForFile(partName: string): Promise<LDrawFile | null> {
-//     const filename = partName.toLowerCase().replace('\\', '/');
-
-//     // If we know it exists in the 'p' folder, add it The part is in either /parts or /p folders
-//     const subfolders = pfiles.has(filename)
-//         ? ['p'] // We know it's in p, so only check it
-//         : ['parts', 'p', 'models'] // We don't know where it is so check both
-
-//     for (const subfolder of subfolders) {
-//       const data = await fnLoadFile(new URL(`${subfolder}/${filename}`));
-//       const part: LDrawFile = parse(data);
-//       if (part) {
-//         return part;
-//       }
-//     }
-//     return null;
-//   }
-
-//   private async downloadAndParse() {
-//     let error: any
-//     try {
-//       const file = await this.searchForFile(this.name);
-//       if (!file) {
-//         throw new Error('Part not found ' + this.name);
-//       }
-
-//       // Get download promises for subparts
-//       const subparts: Promise<LDrawFile>[] = file.lines
-//         .filter(line => line.lineType === 1)
-//         .map(line => {
-//           const subfile = line as SubFile;
-//           return Download.loadModel(new URL(subfile.file))
-//         });
-//       if (subparts) {
-//         await Promise.all(subparts);
-//       }
-
-//       this.file = file;
-//     } catch (err) {
-//       error = err;
-//     }
-
-//     // Notify interested listeners
-//     this.listeners.forEach(cb => cb(error));
-//   }
-
-//   private async onComplete() {
-//     if (this.file) {
-//       return this.file;
-//       this.listeners = []; // Free up the listeners
-//     }
-
-//     // This allows many files to await this download
-//     return new Promise<LDrawFile>((resolve, reject) => {
-//       this.listeners.push((err: any) => {
-//         if (err) {
-//           return reject(err);
-//         }
-//         resolve(this.file!);
-//       })
-//     })
-//   }
-
-// }
 
 export default LDraw;
